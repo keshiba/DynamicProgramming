@@ -6,6 +6,11 @@ import (
 
 var memo map[string]*big.Int
 
+// MemoizedFibonacci calculates the nth fibonacci number using
+// a map as a value-cache to store computed data for re-use.
+// This is generally an optimization over the traditional
+// recursive fibonacci algorithm, but it trades-off memory
+// in favor of better performance
 func MemoizedFibonacci(number int64) big.Int {
 
 	memo = make(map[string]*big.Int)
