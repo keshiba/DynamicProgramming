@@ -5,7 +5,7 @@ import (
 )
 
 // BottomUpFibonacci calculates the nth fibonacci number
-// using a bottom-up approach as opposed a top-down approach
+// using a bottom-up approach as opposed to a top-down approach
 // which requires recursive function calls to traverse down
 // the computation tree. Using a bottom-up approach, we can
 // cut down the memory overhead of maintaining a map/cache of
