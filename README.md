@@ -12,3 +12,6 @@ This repo will serve as my personal vault while I'm solving exercies and taking 
 
 3. [Change Making](pkg/algorithm/changemaking/) :
     *Learn how to solve the Change Making problem and understand the limitations of Dynamic Programming*
+
+4. [Content Aware Image Resizing](pkg/imageresize/)
+    *Learn how to perform content-aware resizing on an image*
