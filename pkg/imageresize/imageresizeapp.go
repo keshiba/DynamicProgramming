@@ -1,6 +1,7 @@
 package imageresize
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/keshiba/ll-dynamicprogramming/pkg/imageresize/seamcarving"
@@ -12,6 +13,27 @@ type ImageResizeApp struct {
 	EnergyHighlightFilename string
 }
 
+// Creates a new instance of the ImageResizeApp after
+// validating the argument list
+func New(args []string) (*ImageResizeApp, error) {
+
+	if len(args) != 2 {
+		printUsage(args[0])
+		return nil, fmt.Errorf("not enough arguments")
+	}
+
+	imageFileName := args[1]
+	newFileName := fmt.Sprintf("%s-energy.jpeg", imageFileName)
+
+	app := &ImageResizeApp{
+		Filename:                imageFileName,
+		EnergyHighlightFilename: newFileName,
+	}
+
+	return app, nil
+}
+
+// Executes the ImageResize app
 func (a ImageResizeApp) Run() error {
 
 	log.Println("Reading image ", a.Filename)
@@ -43,4 +65,9 @@ func (a ImageResizeApp) Run() error {
 	log.Println("Complete")
 
 	return nil
+}
+
+func printUsage(binaryName string) {
+
+	fmt.Printf("Usage: ./%s <input-file-name>\n", binaryName)
 }

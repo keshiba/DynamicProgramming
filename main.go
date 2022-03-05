@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"os"
 
 	"github.com/keshiba/ll-dynamicprogramming/pkg/imageresize"
@@ -9,26 +9,14 @@ import (
 
 func main() {
 
-	if len(os.Args) != 2 {
-		printUsage(os.Args[0])
-		return
-	}
+	app, err := imageresize.New(os.Args)
 
-	imageFileName := os.Args[1]
-	newFileName := fmt.Sprintf("%s-energy.jpeg", imageFileName)
-
-	app := imageresize.ImageResizeApp{
-		Filename:                imageFileName,
-		EnergyHighlightFilename: newFileName,
-	}
-
-	err := app.Run()
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 	}
-}
 
-func printUsage(binaryName string) {
-
-	fmt.Printf("Usage: ./%s <input-file-name>\n", binaryName)
+	err = app.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
 }
