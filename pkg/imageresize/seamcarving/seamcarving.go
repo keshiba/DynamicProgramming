@@ -1,39 +1,59 @@
 package seamcarving
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"math"
 )
 
-func HighlightImageEnergy(img image.Image) *image.Gray16 {
+func ComputePixelEnergy(img image.Image) [][]float64 {
 
 	bounds := img.Bounds()
-	width := bounds.Dx()
-	height := bounds.Dy()
-
 	top := bounds.Min.Y
 	left := bounds.Min.X
 	bottom := bounds.Max.Y
 	right := bounds.Max.X
 
-	newRect := image.Rectangle{image.Point{0, 0}, image.Point{width, height}}
-	newImg := image.NewGray16(newRect)
+	energyData := make([][]float64, (bottom - top))
+	for colIndex := range energyData {
+		energyData[colIndex] = make([]float64, (right - left))
+	}
 
 	for y := top; y < bottom; y++ {
 		for x := left; x < right; x++ {
-
 			energy := energyAt(x, y, top, left, bottom, right, &img)
+			energyData[y][x] = energy
+		}
+	}
+
+	return energyData
+}
+
+func RenderImageEnergy(energyData [][]float64) (*image.Gray16, error) {
+
+	if len(energyData) == 0 {
+		return nil, fmt.Errorf("energy data is empty")
+	}
+
+	height := len(energyData)
+	width := len(energyData[0])
+
+	newRect := image.Rectangle{image.Point{0, 0}, image.Point{width, height}}
+	newImg := image.NewGray16(newRect)
+
+	for y, rowData := range energyData {
+		for x, energyValue := range rowData {
 
 			newColor := color.Gray16{
-				Y: uint16(energy),
+				Y: uint16(energyValue),
 			}
 
 			newImg.SetGray16(x, y, newColor)
 		}
 	}
 
-	return newImg
+	return newImg, nil
 }
 
 func energyAt(x, y, top, left, bottom, right int, img *image.Image) float64 {

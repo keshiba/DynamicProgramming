@@ -2,54 +2,33 @@ package main
 
 import (
 	"fmt"
-	"image"
-	"image/jpeg"
 	"os"
 
-	"github.com/keshiba/ll-dynamicprogramming/pkg/imageresize/seamcarving"
+	"github.com/keshiba/ll-dynamicprogramming/pkg/imageresize"
 )
 
 func main() {
 
-	imageFileName := `D:\Dev\golang\ll-dynamicprog\resource\img\surfer.jpg`
-
-	fmt.Printf("Opening image file at %s\n", imageFileName)
-
-	f, err := os.Open(imageFileName)
-	if err != nil {
-		fmt.Println(err)
+	if len(os.Args) != 2 {
+		printUsage(os.Args[0])
 		return
 	}
 
-	defer f.Close()
-
-	img, _, err := image.Decode(f)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	highlightedImg := seamcarving.HighlightImageEnergy(img)
-
+	imageFileName := os.Args[1]
 	newFileName := fmt.Sprintf("%s-energy.jpeg", imageFileName)
-	newF, err := os.Create(newFileName)
+
+	app := imageresize.ImageResizeApp{
+		Filename:                imageFileName,
+		EnergyHighlightFilename: newFileName,
+	}
+
+	err := app.Run()
 	if err != nil {
 		fmt.Println(err)
-		return
 	}
+}
 
-	defer newF.Close()
+func printUsage(binaryName string) {
 
-	jpegOptions := jpeg.Options{
-		Quality: 90,
-	}
-
-	fmt.Println("Writing image")
-	err = jpeg.Encode(newF, highlightedImg, &jpegOptions)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	fmt.Println("Complete")
+	fmt.Printf("Usage: ./%s <input-file-name>\n", binaryName)
 }
