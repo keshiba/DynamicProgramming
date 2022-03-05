@@ -1,9 +1,7 @@
 package seamcarving
 
 import (
-	"fmt"
 	"image"
-	"image/color"
 	"math"
 )
 
@@ -28,32 +26,6 @@ func ComputePixelEnergy(img image.Image) [][]float64 {
 	}
 
 	return energyData
-}
-
-func RenderImageEnergy(energyData [][]float64) (*image.Gray16, error) {
-
-	if len(energyData) == 0 {
-		return nil, fmt.Errorf("energy data is empty")
-	}
-
-	height := len(energyData)
-	width := len(energyData[0])
-
-	newRect := image.Rectangle{image.Point{0, 0}, image.Point{width, height}}
-	newImg := image.NewGray16(newRect)
-
-	for y, rowData := range energyData {
-		for x, energyValue := range rowData {
-
-			newColor := color.Gray16{
-				Y: uint16(energyValue),
-			}
-
-			newImg.SetGray16(x, y, newColor)
-		}
-	}
-
-	return newImg, nil
 }
 
 func energyAt(x, y, top, left, bottom, right int, img *image.Image) float64 {
