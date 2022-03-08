@@ -1,6 +1,7 @@
 package imageresize
 
 import (
+	"flag"
 	"fmt"
 	"log"
 
@@ -9,25 +10,36 @@ import (
 )
 
 type ImageResizeApp struct {
-	Filename                string
-	EnergyHighlightFilename string
+	Filename          string
+	OutputFilename    string
+	ResizeAdjustWidth int
 }
 
 // Creates a new instance of the ImageResizeApp after
 // validating the argument list
 func New(args []string) (*ImageResizeApp, error) {
 
-	if len(args) != 2 {
-		printUsage(args[0])
+	resizeAdjustWidth := flag.Int("width", 10, "No. of pixels of width to remove from image")
+	newFileNameFlag := flag.String("write", "", "Image path to write output to")
+
+	flag.Parse()
+	remainingArgs := flag.Args()
+
+	if len(remainingArgs) != 1 {
 		return nil, fmt.Errorf("not enough arguments")
 	}
 
-	imageFileName := args[1]
-	newFileName := fmt.Sprintf("%s-energy.jpeg", imageFileName)
+	imageFileName := remainingArgs[0]
+
+	newFileName := *newFileNameFlag
+	if *newFileNameFlag == "" {
+		newFileName = fmt.Sprintf("%s-resized.jpeg", imageFileName)
+	}
 
 	app := &ImageResizeApp{
-		Filename:                imageFileName,
-		EnergyHighlightFilename: newFileName,
+		Filename:          imageFileName,
+		OutputFilename:    newFileName,
+		ResizeAdjustWidth: *resizeAdjustWidth,
 	}
 
 	return app, nil
@@ -47,7 +59,8 @@ func (a ImageResizeApp) Run() error {
 	}
 
 	log.Println("Low energy seam carving in progress")
-	for i := 0; i < 400; i++ {
+	log.Println("Resizing width by ", a.ResizeAdjustWidth)
+	for i := 0; i < a.ResizeAdjustWidth; i++ {
 
 		log.Print(i + 1)
 		energyData := seamcarving.ComputePixelEnergy(img)
@@ -57,8 +70,8 @@ func (a ImageResizeApp) Run() error {
 		img = carvedImage
 	}
 
-	carvedImgFileName := fmt.Sprintf("%s-%s", a.Filename, "carved.jpg")
-	err = utils.WriteRGBAImage(carvedImgFileName, &img)
+	log.Println("Writing output to ", a.OutputFilename)
+	err = utils.WriteRGBAImage(a.OutputFilename, &img)
 	if err != nil {
 		log.Println("Error occurred while writing image to the filesystem", err)
 		return err
@@ -67,9 +80,4 @@ func (a ImageResizeApp) Run() error {
 	log.Println("Complete")
 
 	return nil
-}
-
-func printUsage(binaryName string) {
-
-	fmt.Printf("Usage: ./%s <input-file-name>\n", binaryName)
 }
