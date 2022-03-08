@@ -3,7 +3,14 @@ package seamcarving
 import (
 	"image"
 	"math"
+
+	"github.com/keshiba/ll-dynamicprogramming/pkg/imageresize/types"
 )
+
+type EnergyData struct {
+	MinEnergy    float64
+	MinParentCol int
+}
 
 func ComputePixelEnergy(img image.Image) [][]float64 {
 
@@ -20,12 +27,82 @@ func ComputePixelEnergy(img image.Image) [][]float64 {
 
 	for y := top; y < bottom; y++ {
 		for x := left; x < right; x++ {
-			energy := energyAt(x, y, top, left, bottom, right, &img)
-			energyData[y][x] = energy
+			energyData[y][x] = energyAt(x, y, top, left, bottom, right, &img)
 		}
 	}
 
 	return energyData
+}
+
+func ComputeVerticalSeam(energyData [][]float64) []types.Coordinate {
+
+	height := len(energyData)
+	width := len(energyData[0])
+
+	minEnergyGrid := make([][]EnergyData, height)
+	for rowIndex := range minEnergyGrid {
+		minEnergyGrid[rowIndex] = make([]EnergyData, width)
+		for colIndex := range minEnergyGrid[rowIndex] {
+			minEnergyGrid[rowIndex][colIndex] = EnergyData{0, 0}
+		}
+	}
+
+	for colIndex := 0; colIndex < width; colIndex++ {
+		minEnergyGrid[0][colIndex] =
+			EnergyData{energyData[0][colIndex], 0}
+	}
+
+	for rowIndex := 1; rowIndex < height; rowIndex++ {
+		for colIndex := 0; colIndex < width; colIndex++ {
+			prevRowMinCol := colIndex - 1
+			if prevRowMinCol < 0 {
+				prevRowMinCol = 0
+			}
+
+			prevRowMaxCol := colIndex + 1
+			if prevRowMaxCol > (width - 1) {
+				prevRowMaxCol = width - 1
+			}
+
+			minParentCol := minPosOfEnergyData(minEnergyGrid[rowIndex-1], prevRowMinCol, prevRowMaxCol+1)
+
+			minEnergyGrid[rowIndex][colIndex] =
+				EnergyData{
+					energyData[rowIndex][colIndex] + minEnergyGrid[rowIndex-1][minParentCol].MinEnergy,
+					minParentCol,
+				}
+		}
+	}
+
+	minCol := minPosOfEnergyData(minEnergyGrid[height-1], 0, width)
+
+	minEnergySeamCoordinates := make([]types.Coordinate, height)
+
+	colIndex := minCol
+	for rowIndex := height - 1; rowIndex >= 0; rowIndex-- {
+		energyValue := minEnergyGrid[rowIndex][colIndex]
+		minEnergySeamCoordinates[rowIndex] = types.Coordinate{Row: rowIndex, Col: colIndex}
+
+		colIndex = energyValue.MinParentCol
+	}
+
+	return minEnergySeamCoordinates
+}
+
+func minPosOfEnergyData(a []EnergyData, start, end int) int {
+
+	minValue := a[start].MinEnergy
+	minValuePos := start
+
+	for i := start + 1; i < end; i++ {
+
+		if a[i].MinEnergy < minValue {
+			minValue = a[i].MinEnergy
+			minValuePos = i
+		}
+	}
+
+	return minValuePos
 }
 
 func energyAt(x, y, top, left, bottom, right int, img *image.Image) float64 {

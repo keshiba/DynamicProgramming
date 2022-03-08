@@ -33,7 +33,9 @@ func New(args []string) (*ImageResizeApp, error) {
 	return app, nil
 }
 
-// Executes the ImageResize app
+// Runs the ImageResizeApp which computes the energy value
+// of each pixel in an image and performs content-aware resizing
+// by carving out seams of pixels from the image with low energy
 func (a ImageResizeApp) Run() error {
 
 	log.Println("Reading image ", a.Filename)
@@ -44,19 +46,19 @@ func (a ImageResizeApp) Run() error {
 		return err
 	}
 
-	log.Println("Computing pixel energy")
+	log.Println("Low energy seam carving in progress")
+	for i := 0; i < 400; i++ {
 
-	energyData := seamcarving.ComputePixelEnergy(img)
-	highlightedImg, err := utils.RenderGrayImageFromArray(energyData)
+		log.Print(i + 1)
+		energyData := seamcarving.ComputePixelEnergy(img)
+		seamCoords := seamcarving.ComputeVerticalSeam(energyData)
+		carvedImage := utils.RemoveVerticalSeamFromImage(&img, seamCoords)
 
-	if err != nil {
-		log.Println("Error occurred while rendering image from energy-data", err)
-		return err
+		img = carvedImage
 	}
 
-	log.Println("Writing image to file")
-	err = utils.WriteImage(a.EnergyHighlightFilename, highlightedImg)
-
+	carvedImgFileName := fmt.Sprintf("%s-%s", a.Filename, "carved.jpg")
+	err = utils.WriteRGBAImage(carvedImgFileName, &img)
 	if err != nil {
 		log.Println("Error occurred while writing image to the filesystem", err)
 		return err

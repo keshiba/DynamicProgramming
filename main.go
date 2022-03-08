@@ -10,7 +10,6 @@ import (
 func main() {
 
 	app, err := imageresize.New(os.Args)
-
 	if err != nil {
 		log.Fatal(err)
 	}
